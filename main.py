@@ -6,6 +6,7 @@ Created on %(date)s
 """
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt              # visualization library
 import nltk
 from nltk.corpus import brown
 from nltk.corpus import twitter_samples
@@ -20,6 +21,7 @@ from keras.layers import LSTM
 from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
 from keras.preprocessing.text import text_to_word_sequence
+from scipy import spatial
 import string                              # for string operations
 import re
 import copy
@@ -104,7 +106,38 @@ def create_word_vec_dict(unique_words, word_label_dict):
         word_vec_dict[item] = [pos_count, neg_count]
     return word_vec_dict
 
+
+def plot_words(word_list, word_vec_dict):
+    fig, ax = plt.subplots(figsize = (8, 8))
+
+    # convert positive raw counts to logarithmic scale. we add 1 to avoid log(0)
+    x = np.log([word_vec_dict[x][0] + 1 for x in word_list])  
+    y = np.log([word_vec_dict[x][1] + 1 for x in word_list])  
+
+    # Plot a dot for each pair of words
+    ax.scatter(x, y)
     
+    # assign axis labels
+    plt.xlabel("Log Positive count")
+    plt.ylabel("Log Negative count")
+    
+    # Add the word as the label at the same position as you added the points just before
+    for i in range(0, len(word_list)):
+        ax.annotate(word_list[i], (x[i], y[i]), fontsize=12)
+    
+    ax.plot([0, 9], [0, 9], color = 'red') # Plot the red line that divides the 2 areas.
+    plt.show()
+
+    sentiment_scores={}
+    word_vec_list_temp = {x:[word_vec_dict[x][0], word_vec_dict[x][1]] for x in word_list}
+    for item in word_list:
+        pos_score = 100*(1 - spatial.distance.cosine(word_vec_list_temp[item], [1,0]))
+        neg_score = 100*(1 - spatial.distance.cosine(word_vec_list_temp[item], [0,1]))
+        sentiment_scores[item] = [str(math.ceil(pos_score))+"%", str(math.ceil(neg_score))+"%"]
+
+    return sentiment_scores
+        
+
 
 if __name__ == "__main__":
     #download twitter_sample data, and list of stopwords and punctuations for pre-processing the text
@@ -126,6 +159,8 @@ if __name__ == "__main__":
     #Construct word vectors
     word_vec_dict = create_word_vec_dict(unique_words, word_label_dict)
     
-        
-    
+    #Task 1: plot a list of words using sentiments as cordinates
+    word_list = ["sad", "happy", "good", "bad", "dark", "help", ":)", ":(", ":D", "torture"]
+    sentiment_scores = plot_words(word_list, word_vec_dict)        
+    print (pd.DataFrame.from_dict(sentiment_scores, orient='index', columns=['Positive_Sentiment','Negative_Sentiment']))
     

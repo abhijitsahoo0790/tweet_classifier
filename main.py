@@ -12,6 +12,7 @@ from nltk.corpus import twitter_samples
 from nltk.corpus import stopwords          # module for stop words that come with NLTK
 from nltk.stem import PorterStemmer        # module for stemming
 from nltk.tokenize import TweetTokenizer   # module for tokenizing strings
+from nltk.stem.wordnet import WordNetLemmatizer
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
@@ -57,13 +58,58 @@ def process_tweet(tweet, stopwords, punctuations):
     
     #remove stop word and punctuations
     tweet_token_processed = [item for item in tweet_tokens if ((item not in stopwords) and (item not in punctuations))]
-    
-    return tweet_token_processed
 
+    #lemmatizing words using wordnet lemmatizer    
+    lmtzr = WordNetLemmatizer()
+    tweet_tokens_lmtzd = [lmtzr.lemmatize(item) for item in tweet_token_processed]
+    
+    return tweet_tokens_lmtzd
+
+
+def create_freq_dict_and_unique_word_list(positive_tweets_processed, negative_tweets_processed):
+    #create (word,label):frequency dictionary
+    word_label_dict = {}
+    unique_words = set()
+
+    for item in [item for sublist in positive_tweets_processed for item in sublist]:
+        unique_words.add(item)
+        if (item,1) in word_label_dict:
+            word_label_dict[(item,1)] +=1
+        else:
+            word_label_dict[(item,1)] = 1
+
+    for item in [item for sublist in negative_tweets_processed for item in sublist]:
+        unique_words.add(item)
+        if (item,0) in word_label_dict:
+            word_label_dict[(item,0)] +=1
+        else:
+            word_label_dict[(item,0)] = 1
+
+    return [word_label_dict, unique_words]
+
+
+def create_word_vec_dict(unique_words, word_label_dict):
+    word_vec_dict={}
+    for item in unique_words:
+        try:
+            pos_count = word_label_dict[(item,1)]
+        except:
+            pos_count = 0
+           
+        try:   
+            neg_count = word_label_dict[(item,0)]
+        except:
+            neg_count = 0
+
+        word_vec_dict[item] = [pos_count, neg_count]
+    return word_vec_dict
+
+    
 
 if __name__ == "__main__":
     #download twitter_sample data, and list of stopwords and punctuations for pre-processing the text
     # nltk.download("twitter_samples")
+    # nltk.download("wordnet")
     stopwords = stopwords.words('english')
     punctuations = string.punctuation
     
@@ -72,7 +118,14 @@ if __name__ == "__main__":
     negative_tweets = twitter_samples.strings('negative_tweets.json')
     
     positive_tweets_processed = [process_tweet(item, stopwords, punctuations) for item in positive_tweets]
-    negative_tweets_processed = [process_tweet(item, stopwords, punctuations) for item in negative_tweets]
+    negative_tweets_processed = [process_tweet(item, stopwords, punctuations) for item in negative_tweets]            
+
+    #create (word,label):frequency dictionary, and return unique word vector
+    [word_label_dict, unique_words] = create_freq_dict_and_unique_word_list(positive_tweets_processed, negative_tweets_processed)
+        
+    #Construct word vectors
+    word_vec_dict = create_word_vec_dict(unique_words, word_label_dict)
     
+        
     
     

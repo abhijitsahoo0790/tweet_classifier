@@ -34,6 +34,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     filename='log.txt', filemode='w', level=logging.DEBUG, 
                     datefmt='%Y-%m-%d %H:%M:%S')
 
+
 def process_tweet(tweet, stopwords, punctuations):
     """
     process twitter text by removing retweet signature(RT), url, hashtags, stop words, punctuations
@@ -68,8 +69,24 @@ def process_tweet(tweet, stopwords, punctuations):
     return tweet_tokens_lmtzd
 
 
+
 def create_freq_dict_and_unique_word_list(positive_tweets_processed, negative_tweets_processed):
-    #create (word,label):frequency dictionary
+    """
+    Create (word,label):frequency dictionary, and create list of unique words
+    
+    Parameters
+    ----------
+    positive_tweets_processed : list of list of str
+        Each tweet is a list of str, and it has list of positive tweets
+    negative_tweets_processed : list of list of str
+        Each tweet is a list of str, and it has list of negative tweets
+        
+    Returns
+    -------
+    list [word_label_dict, unique_words]
+        Returns both the word_lebel freq dict and list of unique words.
+    """
+    
     word_label_dict = {}
     unique_words = set()
 
@@ -90,6 +107,7 @@ def create_freq_dict_and_unique_word_list(positive_tweets_processed, negative_tw
     return [word_label_dict, unique_words]
 
 
+
 def create_word_vec_dict(unique_words, word_label_dict):
     word_vec_dict={}
     for item in unique_words:
@@ -105,6 +123,7 @@ def create_word_vec_dict(unique_words, word_label_dict):
 
         word_vec_dict[item] = [pos_count, neg_count]
     return word_vec_dict
+
 
 
 def plot_words(word_list, word_vec_dict):
@@ -161,6 +180,9 @@ if __name__ == "__main__":
     
     #Task 1: plot a list of words using sentiments as cordinates
     word_list = ["sad", "happy", "good", "bad", "dark", "help", ":)", ":(", ":D", "torture"]
-    sentiment_scores = plot_words(word_list, word_vec_dict)        
-    print (pd.DataFrame.from_dict(sentiment_scores, orient='index', columns=['Positive_Sentiment','Negative_Sentiment']))
+    sentiment_scores = plot_words(word_list, word_vec_dict)    
+
+    # Task 2: Print the sentiment scores
+    score_df = pd.DataFrame.from_dict(sentiment_scores, orient='index', columns=['Pos_Sentiment_Score','Neg_Sentiment_Score'])    
+    print (score_df)
     

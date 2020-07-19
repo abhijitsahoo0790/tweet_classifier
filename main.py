@@ -31,19 +31,19 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     filename='log.txt', filemode='w', level=logging.DEBUG, 
                     datefmt='%Y-%m-%d %H:%M:%S')
 
-def process_tweets(tweet, stopwords, punctuations):
+def process_tweet(tweet, stopwords, punctuations):
     """
     process twitter text by removing retweet signature(RT), url, hashtags, stop words, punctuations
 
     Parameters
     ----------
-    text : TYPE
-        DESCRIPTION.
+    tweet : str
+        Text content of a tweet
 
     Returns
     -------
-    text_processed : TYPE
-        DESCRIPTION.
+    tweet_token_processed : list of str
+        List of tokens of the tweet after it is processed 
 
     """
     retweetRT_removed = re.sub(r'^RT[\s]','',tweet)
@@ -71,8 +71,8 @@ if __name__ == "__main__":
     positive_tweets = twitter_samples.strings('positive_tweets.json')
     negative_tweets = twitter_samples.strings('negative_tweets.json')
     
-    positive_tweets_processed = [process_tweets(item, stopwords, punctuations) for item in positive_tweets]
-    negative_tweets_processed = [process_tweets(item, stopwords, punctuations) for item in negative_tweets]
+    positive_tweets_processed = [process_tweet(item, stopwords, punctuations) for item in positive_tweets]
+    negative_tweets_processed = [process_tweet(item, stopwords, punctuations) for item in negative_tweets]
     
     
     
